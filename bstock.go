@@ -1,3 +1,6 @@
+// bstock
+// Author: Branislav Blaskovic
+
 package main
 
 import (
@@ -36,11 +39,28 @@ type Stock struct {
 	Url      string
 	Notes    string
 	Currency string
-	BuyPrice float64
+	BuyPrice string
 }
 
-func PriceToString(price float64) string {
-	return strconv.FormatFloat(price, 'f', 2, 64)
+func FloatToString(number float64) string {
+	return strconv.FormatFloat(number, 'f', 2, 64)
+}
+
+func StringToFloat(text string) float64 {
+	text = strings.Replace(text, ",", ".", -1)
+	reg, _ := regexp.Compile("[^0-9.]+")
+	text = reg.ReplaceAllString(text, "")
+
+	num, err := strconv.ParseFloat(text, 32)
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+	}
+
+	return num
+}
+
+func JoinStrings(str1, str2 string) string {
+	return strings.Join([]string{str1, str2}, " ")
 }
 
 // GetPrice downloads URL and returns it
@@ -52,23 +72,12 @@ func GetPrice(url string) float64 {
 	}
 
 	text := doc.Find("#ctl00_BCPP_Celkem_dvCelkem td.num").First().Text()
-	text = strings.Replace(text, ",", ".", -1)
-	reg, _ := regexp.Compile("[^0-9.]+")
-	text = reg.ReplaceAllString(text, "")
 
-	price, err := strconv.ParseFloat(text, 32)
-	if err != nil {
-		fmt.Printf("%s\n", err)
-		os.Exit(1)
-	}
-
-	return price
+	return StringToFloat(text)
 
 }
 
 func main() {
-	fmt.Printf("bstock by Branislav Blaskovic\n")
-
 	// Config
 	path, _ := filepath.Abs("./stocks.yml")
 	yamlFile, errFile := ioutil.ReadFile(path)
@@ -82,23 +91,20 @@ func main() {
 		log.Fatalf("error: %v", err)
 	}
 
-	//fmt.Printf("%#v\n", t)
+	// This is just for debug
+	// fmt.Printf("%#v\n", t)
 
 	// Table to print
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Ticker", "Price"})
+	table.SetHeader([]string{"Ticker", "Price", "Buy price"})
 
 	// Stocks cycler
 	for ticker, data := range t.Stocks {
 		price := GetPrice(data.Url)
-		priceStr := PriceToString(price)
-		priceStr = strings.Join([]string{priceStr, data.Currency}, " ")
-		table.Append([]string{ticker, priceStr})
+		table.Append([]string{ticker, JoinStrings(FloatToString(price), data.Currency), JoinStrings(data.BuyPrice, data.Currency)})
 
 	}
 
 	table.SetAlignment(tablewriter.ALIGN_RIGHT)
 	table.Render()
-
-	// BAASTOCK
 }
