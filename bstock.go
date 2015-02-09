@@ -18,19 +18,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var data = `
-description: bu
-stocks:
-  STOCK:
-    ticker: BAASTOCK
-    url: url1
-    notes: Lol
-  UPL:
-    ticker: BAASTOCK
-    notes: Lol
-    url: url2
-`
-
 type T struct {
 	Stocks map[string]Stock
 }
@@ -71,7 +58,14 @@ func GetPrice(url string) float64 {
 		return 0.0
 	}
 
-	text := doc.Find("#ctl00_BCPP_Celkem_dvCelkem td.num").First().Text()
+	var text string
+
+	switch {
+	case strings.Contains(url, "bcpp.cz") == true:
+		text = doc.Find("#ctl00_BCPP_Celkem_dvCelkem td.num").First().Text()
+	case strings.Contains(url, "google.com/finance"):
+		text = doc.Find("span.pr span").First().Text()
+	}
 
 	return StringToFloat(text)
 
@@ -96,12 +90,12 @@ func main() {
 
 	// Table to print
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Ticker", "Price", "Buy price"})
+	table.SetHeader([]string{"Ticker", "Price", "Buy price", "Notes"})
 
 	// Stocks cycler
 	for ticker, data := range t.Stocks {
 		price := GetPrice(data.Url)
-		table.Append([]string{ticker, JoinStrings(FloatToString(price), data.Currency), JoinStrings(data.BuyPrice, data.Currency)})
+		table.Append([]string{ticker, JoinStrings(FloatToString(price), data.Currency), JoinStrings(data.BuyPrice, data.Currency), data.Notes})
 
 	}
 
