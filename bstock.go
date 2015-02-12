@@ -27,6 +27,8 @@ type Stock struct {
 	Notes    string
 	Currency string
 	BuyPrice string
+	Amount   int
+	Fees     float64
 }
 
 func FloatToString(number float64) string {
@@ -50,6 +52,11 @@ func JoinStrings(str1, str2 string) string {
 	return strings.Join([]string{str1, str2}, " ")
 }
 
+func PercentDifference(num1, num2 float64) float64 {
+	return (num1 - num2) / ((num1 + num2) / 2)
+
+}
+
 // GetPrice downloads URL and returns it
 func GetPrice(url string) float64 {
 	doc, err := goquery.NewDocument(url)
@@ -62,7 +69,7 @@ func GetPrice(url string) float64 {
 
 	switch {
 	case strings.Contains(url, "bcpp.cz") == true:
-		text = doc.Find("#ctl00_BCPP_Celkem_dvCelkem td.num").First().Text()
+		text = doc.Find("#ctl00_BCPP_KontinualOL_dvTable td.num").First().Text()
 	case strings.Contains(url, "google.com/finance"):
 		text = doc.Find("span.pr span").First().Text()
 	}
@@ -90,13 +97,23 @@ func main() {
 
 	// Table to print
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Ticker", "Price", "Buy price", "Notes"})
+	table.SetHeader([]string{"Ticker", "Price", "Buy price", "Diff", "Diff %", "Fees", "Overall", "Notes"})
 
 	// Stocks cycler
 	for ticker, data := range t.Stocks {
+		// Prepare variables to display
+		dTicker := JoinStrings(strconv.Itoa(data.Amount), ticker)
 		price := GetPrice(data.Url)
-		table.Append([]string{ticker, JoinStrings(FloatToString(price), data.Currency), JoinStrings(data.BuyPrice, data.Currency), data.Notes})
+		buyPrice := StringToFloat(data.BuyPrice)
+		dPrice := JoinStrings(FloatToString(price), data.Currency)
+		dBuyPrice := JoinStrings(data.BuyPrice, data.Currency)
+		dDifference := JoinStrings(FloatToString(price-buyPrice), data.Currency)
+		dDifferencePercent := JoinStrings(FloatToString(PercentDifference(price, buyPrice)), "%")
+		dOverall := JoinStrings(FloatToString(float64(data.Amount)*(price-buyPrice)-data.Fees), data.Currency)
+		dFees := JoinStrings(FloatToString(data.Fees), data.Currency)
 
+		// Append row to table
+		table.Append([]string{dTicker, dPrice, dBuyPrice, dDifference, dDifferencePercent, dFees, dOverall, data.Notes})
 	}
 
 	table.SetAlignment(tablewriter.ALIGN_RIGHT)
