@@ -79,8 +79,12 @@ func GetPrice(url string) float64 {
 }
 
 func main() {
+	if len(os.Args) != 2 {
+		log.Fatalf("Error: argument has to be yaml file with stocks")
+	}
+
 	// Config
-	path, _ := filepath.Abs("./stocks.yml")
+	path, _ := filepath.Abs(os.Args[1])
 	yamlFile, errFile := ioutil.ReadFile(path)
 	if errFile != nil {
 		log.Fatalf("Error: %v", errFile)

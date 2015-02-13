@@ -1,0 +1,15 @@
+stocks:
+  BAASTOCK:
+    url: http://www.bcpp.cz/Cenne-Papiry/Detail.aspx?isin=GB00BF5SDZ96
+    notes: This will go up
+    currency: CZK
+    buyprice: 74.05
+    amount: 100
+    fees: 100
+  NYSE:UPL:
+    url: https://www.google.com/finance?q=NYSE:UPL&ei=TsXYVJDHLKmewwOhyoC4DQ
+    notes: Some note
+    currency: USD
+    buyprice: 13.40
+    amount: 50
+    fees: 15.90
