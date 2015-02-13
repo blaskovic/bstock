@@ -1,8 +1,15 @@
 # bstock
 Just another stock portfolio
 
+## Installation
+As any other Go script
+
+    go get github.com/blaskovic/bstock
+
+## Example
 **Input yaml file**
 
+    # cat stocks.yml
     stocks:
       BAASTOCK:
         url: http://www.bcpp.cz/Cenne-Papiry/Detail.aspx?isin=GB00BF5SDZ96
@@ -21,6 +28,7 @@ Just another stock portfolio
 
 **Output**
 
+    # bstock stocks.yml
     +--------------+-----------+-----------+----------+--------+------------+-----------+- ----------+
     |    TICKER    |   PRICE   | BUY PRICE |   DIFF   | DIFF % |    FEES    |  OVERALL  |    NOTES   |
     +--------------+-----------+-----------+----------+--------+------------+-----------+------------+
